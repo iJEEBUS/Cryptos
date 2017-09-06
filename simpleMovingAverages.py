@@ -3,12 +3,10 @@ from bs4 import BeautifulSoup         ##
 from terminaltables import AsciiTable ##
 ########################################
 
+# Reads the entire HTML from the website that is passed through
 f = urllib.urlopen('https://coinmarketcap.com/currencies/ethereum/historical-data/?start=20130428&end=20170906')
+# Turns the HTML into a BeautifulSoup object that can be manipulated
 soup = BeautifulSoup(f, "lxml")
-
-# Used in the cleaning of strings
-first_tag = ">"
-last_tag = "</"
 
 # Holds all of the historical data from a coin
 historical_data = []
@@ -41,10 +39,14 @@ def computeSMA(m):
 Extract all of the table data from the historical data section of the website
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 def getAllData():
+    # Temporary list to hold the data
+    temp = []
     # Iterates through all of the td objects from the website
     for x in soup.find_all('td'):
         # Appends to the historical_data list
-        historical_data.append(x)
+        temp.append(x)
+    # Return temporary list
+    return temp
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Pulls the data from the historical_data list and extracts just the closing
@@ -69,7 +71,11 @@ def createClosingPriceList(listedData, iterations):
 Gets all of the table data from the table on the website.
 Places said data into the list table_data.
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-def cleanData(START, END, s):
+def cleanData(s):
+    # Used in the cleaning of strings
+    first_tag = ">"
+    last_tag = "</"
+
     # Temporary list to hold the output of the cleaned numbers
     temp = []
     # Iterate over each item in the inputted list s
@@ -77,7 +83,7 @@ def cleanData(START, END, s):
         # Converts item to string to clean
         number_as_string = str(x)
         # Assigns name to the cleaned number
-        cleaned_number = number_as_string[number_as_string.find(START)+1:number_as_string.find(END)]
+        cleaned_number = number_as_string[number_as_string.find(first_tag)+1:number_as_string.find(last_tag)]
         # Appends the clean number to the temporary list
         temp.append(cleaned_number)
     # Return the cleaned number list
@@ -87,10 +93,12 @@ def cleanData(START, END, s):
 Execute the entire program
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 def run(days):
-    getAllData()
-    createClosingPriceList(historical_data, days)
-    cleaned_closing_price_data = cleanData(first_tag, last_tag, closing_price_data)
-    computeSMA(cleaned_closing_price_data)
+    historical_data = getAllData()
+    closing_price_data = createClosingPriceList(historical_data, days)
+    cleaned_closing_price_data = cleanData(closing_price_data)
+    simple_moving_average = computeSMA(cleaned_closing_price_data)
+    print(simple_moving_average)
 
-run(45)
-# For a SMA: (cp0 + cp1 + cp2 + cp3 + cp 4) / 5
+
+if __name__ == "__name__":
+    run()
